@@ -1,24 +1,19 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#define TEXT_FILE "shakespeare.txt"
 #define MAX_WORD_COUNT 1000000
 #define MAX_WORD_LENGTH 100
-#define BUCKET_NUM 1000000
-
-/*
-Each word is read from the file and converted to lowercase. Our initial
-version used the function lower1 (Figure 5.7), which we know to have
-quadratic run time due to repeated calls to strlen
-*/
+#define BUCKET_NUM 1021
 
 /*
 Convert string to lowercase: slow
 from textbook p.546
 */
 void lower1(char *s) {
-  long i;
-  for (i = 0; i < strlen(s); i++) {
+  for (long i = 0; i < strlen(s); i++) {
     if (s[i] >= 'A' && s[i] <= 'Z') {
       s[i] -= ('A' - 'a');
     }
@@ -26,10 +21,28 @@ void lower1(char *s) {
 }
 
 /*
+Remove punctuation from string
+*/
+void removePunctuation(char *str) {
+  int i, j = 0;
+  char noPunct[strlen(str) + 1];  // +1 for the null terminator
+
+  for (i = 0; i < strlen(str); i++) {
+    if (!ispunct(str[i])) {
+      noPunct[j++] = str[i];
+    }
+  }
+  noPunct[j] = '\0';  // Adding the null terminator to the end of the string
+
+  // Copying the modified string back to the original string
+  strcpy(str, noPunct);
+}
+
+/*
 Read each word from the file and lower the case of each word
 */
 char **readWords() {
-  FILE *file = fopen("shakespeare.txt", "r");
+  FILE *file = fopen(TEXT_FILE, "r");
 
   char **words = (char **)malloc(MAX_WORD_COUNT * sizeof(char *));
   char word[MAX_WORD_LENGTH];
@@ -37,6 +50,7 @@ char **readWords() {
 
   while (fscanf(file, "%99s", word) == 1) {
     lower1(word);
+    removePunctuation(word);
     words[i] = (char *)malloc(MAX_WORD_LENGTH * sizeof(char));
     strcpy(words[i], word);
     i++;
@@ -52,7 +66,8 @@ char **readWords() {
 Node structure of bigrams for linked list of hash table
 */
 typedef struct Node {
-  char bigram[2 * MAX_WORD_LENGTH];
+  char bigram[2]
+             [MAX_WORD_LENGTH];  // bigram[0] = word[i], bigram[1] = word[i+1]
   int freq;
   struct Node *next;
 } Node;
@@ -60,10 +75,13 @@ typedef struct Node {
 /*
 Hash function that sums the ASCII codes for the characters modulo s
 */
-int hashFunction(char *s) {
+int hashFunction(char *word1, char *word2) {
   int sum = 0;
-  for (int i = 0; s[i] != '\0'; i++) {
-    sum += (int)s[i];
+  for (int i = 0; i < strlen(word1); i++) {
+    sum += word1[i];
+  }
+  for (int i = 0; i < strlen(word2); i++) {
+    sum += word2[i];
   }
   return sum % BUCKET_NUM;
 }
@@ -71,63 +89,106 @@ int hashFunction(char *s) {
 /*
 Insert bigram into hash table
 */
-Node *insert2HashTable(Node *head, char *bigram) {
-  Node *current = head;
-  // Traverse the linked list to find the bigram
-  while (current != NULL) {
-    if (strcmp(current->bigram, bigram) == 0) {
-      current->freq++;
-      return head;
-    }
-    current = current->next;
-  }
-
-  // If the bigram is not found,
-  // create a new node and insert it at the head of the linked list
+void insert2HashTable(Node **hashTable, int bucketIndex, char *word1,
+                      char *word2) {
   Node *newNode = (Node *)malloc(sizeof(Node));
-  strcpy(newNode->bigram, bigram);
+  strcpy(newNode->bigram[0], word1);
+  strcpy(newNode->bigram[1], word2);
   newNode->freq = 1;
-  newNode->next = head;
-  return newNode;
+  newNode->next = NULL;
+
+  if (hashTable[bucketIndex] == NULL) {
+    hashTable[bucketIndex] = newNode;
+  } else {
+    Node *current = hashTable[bucketIndex];
+    while (current->next != NULL) {
+      if (strcmp(current->bigram[0], word1) == 0 &&
+          strcmp(current->bigram[1], word2) == 0) {
+        current->freq++;
+        return;
+      }
+      current = current->next;
+    }
+    if (strcmp(current->bigram[0], word1) == 0 &&
+        strcmp(current->bigram[1], word2) == 0) {
+      current->freq++;
+      return;
+    }
+    current->next = newNode;
+  }
+}
+
+/*
+complete hash table
+*/
+void completeHashTable(Node **hashTable, char **words) {
+  char bigram[2 * MAX_WORD_LENGTH];
+  int bucketIndex;
+  for (int i = 0; i < MAX_WORD_COUNT && words[i + 1] != NULL; i++) {
+    // bigram = "word[i] word[i+1]"
+    bucketIndex = hashFunction(words[i], words[i + 1]);
+    insert2HashTable(hashTable, bucketIndex, words[i], words[i + 1]);
+  }
+}
+
+/*
+Copy nodes to 1d array for sorting bigram nodes
+*/
+void node2Array(Node **hashTable, Node **nodeArray, int *nodeCount) {
+  int index = 0;
+  for (int i = 0; i < BUCKET_NUM; i++) {
+    Node *current = hashTable[i];
+    while (current != NULL) {
+      nodeArray[index] = current;
+      index++;
+      current = current->next;
+    }
+  }
+  *nodeCount = index;
 }
 
 /*
 Insertion sort
 */
-void insertionSort(Node *head) {
-  Node *current = head;
-  Node *sorted = NULL;
-  Node *next;
-  while (current != NULL) {
-    next = current->next;
-    sortedInsert(&sorted, current);
-    current = next;
+void insertionSort(Node **nodeArray, int nodeCount) {
+  Node *key;
+  int i, j;
+  for (i = 1; i < nodeCount; i++) {
+    key = nodeArray[i];
+    j = i - 1;
+    while (j >= 0 && nodeArray[j]->freq < key->freq) {
+      nodeArray[j + 1] = nodeArray[j];
+      j--;
+    }
+    nodeArray[j + 1] = key;
   }
-  head = sorted;
 }
 
-
 int main() {
+  // read words from file and store in to words array
   char **words = readWords();
-  if (words == NULL) {
-    return 1;
+
+  // turn words into bigram node and store in to hash table
+  Node **hashTable = (Node **)malloc(sizeof(Node *) * BUCKET_NUM);
+  completeHashTable(hashTable, words);
+
+  // copy nodes from hash table to 1d array
+  Node **nodeArray = (Node **)malloc(MAX_WORD_COUNT * sizeof(Node *));
+  int nodeCount = 0;
+  node2Array(hashTable, nodeArray, &nodeCount);
+
+  // sort bigram nodes
+  insertionSort(nodeArray, nodeCount);
+
+  // print out top 10 bigrams
+  printf("< Top 10 bigrams >\n\n");
+  for (int i = 0; i < 10; i++) {
+    if (nodeArray[i] == NULL) {
+      break;
+    }
+    printf("# %d - %s %s : %d\n", i, nodeArray[i]->bigram[0],
+           nodeArray[i]->bigram[1], nodeArray[i]->freq);
   }
-
-  char bigram[2 * MAX_WORD_LENGTH];
-  int bucketIndex;
-  Node *hashTable[BUCKET_NUM] = {NULL};
-
-  for (int i = 0; i < MAX_WORD_COUNT && words[i + 1] != NULL; i++) {
-    // bigram = "word[i] word[i+1]"
-    strcpy(bigram, words[i]);
-    strcat(bigram, " ");
-    strcat(bigram, words[i + 1]);
-    strcat(bigram, "\0");
-    bucketIndex = hashFunction(bigram);
-    hashTable[bucketIndex] = insert2HashTable(hashTable[bucketIndex], bigram);
-  }
-
-  Node* sortResult[MAX_WORD_COUNT];
 
   return 0;
 }
