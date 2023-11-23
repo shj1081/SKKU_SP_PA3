@@ -1,0 +1,15 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/hyzoon/Programming/System_Program/bigram_betterHash'
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _lower1, symObjAddr: 0x0, symBinAddr: 0x100003640, symSize: 0xB0 }
+  - { offsetInCU: 0xB6, offset: 0xB6, size: 0x8, addend: 0x0, symName: _lower1, symObjAddr: 0x0, symBinAddr: 0x100003640, symSize: 0xB0 }
+  - { offsetInCU: 0xF6, offset: 0xF6, size: 0x8, addend: 0x0, symName: _removePunctuation, symObjAddr: 0xB0, symBinAddr: 0x1000036F0, symSize: 0x158 }
+  - { offsetInCU: 0x151, offset: 0x151, size: 0x8, addend: 0x0, symName: _readWords, symObjAddr: 0x208, symBinAddr: 0x100003848, symSize: 0x11C }
+  - { offsetInCU: 0x1A3, offset: 0x1A3, size: 0x8, addend: 0x0, symName: _hashFunction, symObjAddr: 0x324, symBinAddr: 0x100003964, symSize: 0xA8 }
+  - { offsetInCU: 0x1E7, offset: 0x1E7, size: 0x8, addend: 0x0, symName: _insert2HashTable, symObjAddr: 0x3CC, symBinAddr: 0x100003A0C, symSize: 0x1A8 }
+  - { offsetInCU: 0x25F, offset: 0x25F, size: 0x8, addend: 0x0, symName: _completeHashTable, symObjAddr: 0x574, symBinAddr: 0x100003BB4, symSize: 0xEC }
+  - { offsetInCU: 0x2BB, offset: 0x2BB, size: 0x8, addend: 0x0, symName: _node2Array, symObjAddr: 0x660, symBinAddr: 0x100003CA0, symSize: 0xB0 }
+  - { offsetInCU: 0x341, offset: 0x341, size: 0x8, addend: 0x0, symName: _compareNodes, symObjAddr: 0x710, symBinAddr: 0x100003D50, symSize: 0x40 }
+  - { offsetInCU: 0x393, offset: 0x393, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x750, symBinAddr: 0x100003D90, symSize: 0x134 }
+...
