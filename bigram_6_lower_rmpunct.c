@@ -6,7 +6,7 @@
 #define TEXT_FILE "shakespeare.txt"
 #define MAX_WORD_COUNT 1000000
 #define MAX_WORD_LENGTH 100
-#define BUCKET_NUM 19999
+#define BUCKET_NUM 199999
 
 /*
 Convert string to lowercase: slow
