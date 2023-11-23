@@ -127,7 +127,6 @@ void insert2HashTable(Node **hashTable, char *word1, char *word2) {
 complete hash table
 */
 void completeHashTable(Node **hashTable, char **words) {
-  char bigram[2 * MAX_WORD_LENGTH];
   for (int i = 0; i < MAX_WORD_COUNT && words[i + 1] != NULL; i++) {
     // bigram = "word[i] word[i+1]"
     insert2HashTable(hashTable, words[i], words[i + 1]);

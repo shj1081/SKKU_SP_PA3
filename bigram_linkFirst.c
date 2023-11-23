@@ -91,12 +91,6 @@ Insert bigram into hash table
 */
 void insert2HashTable(Node **hashTable, int bucketIndex, char *word1,
                       char *word2) {
-  Node *newNode = (Node *)malloc(sizeof(Node));
-  strcpy(newNode->bigram[0], word1);
-  strcpy(newNode->bigram[1], word2);
-  newNode->freq = 1;
-  newNode->next = NULL;
-
   Node *current = hashTable[bucketIndex];
   while (current != NULL) {
     if (strcmp(current->bigram[0], word1) == 0 &&
@@ -107,6 +101,11 @@ void insert2HashTable(Node **hashTable, int bucketIndex, char *word1,
     current = current->next;
   }
 
+  Node *newNode = (Node *)malloc(sizeof(Node));
+  strcpy(newNode->bigram[0], word1);
+  strcpy(newNode->bigram[1], word2);
+  newNode->freq = 1;
+  newNode->next = NULL;
   if (hashTable[bucketIndex] == NULL) {
     hashTable[bucketIndex] = newNode;
   } else {
