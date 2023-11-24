@@ -11,8 +11,6 @@
 /*
 library functino wrapping
 */
-int Strlen(char *s) { return strlen(s); }
-
 int Strcmp(char *s1, char *s2) { return strcmp(s1, s2); }
 
 void Strcpy(char *s1, char *s2) { strcpy(s1, s2); }
@@ -25,35 +23,27 @@ void Qsort(void *base, size_t nmemb, size_t size,
 }
 
 /*
-Convert string to lowercase: slow
-from textbook p.546
+Convert string to lowercase using pointer arithmetic and functinal programming
 */
-void lower3(char *s) {
-  int len = Strlen(s);
-  for (long i = 0; i < len; i++) {
-    if (s[i] >= 'A' && s[i] <= 'Z') {
-      s[i] -= ('A' - 'a');
-    }
+void lower3(char *str) {
+  for (; *str != '\0'; str++) {
+    *str = (*str >= 'A' && *str <= 'Z') ? *str - ('A' - 'a') : *str;
   }
 }
 
 /*
-Remove punctuation from string
+Remove punctuation from string using pointer arithmetic and functinal
+programming
 */
 void removePunctuation(char *str) {
-  int i, j = 0;
-  int len = Strlen(str);
-  char noPunct[len + 1];  // +1 for the null terminator
+  char *noPunct = str;
 
-  for (i = 0; i < len; i++) {
-    if (!Ispunct(str[i])) {
-      noPunct[j++] = str[i];
-    }
+  for (; *str != '\0'; str++) {
+    *noPunct = (ispunct(*str)) ? *noPunct : *str;
+    noPunct += (ispunct(*str)) ? 0 : 1;
   }
-  noPunct[j] = '\0';  // Adding the null terminator to the end of the string
 
-  // Copying the modified string back to the original string
-  Strcpy(str, noPunct);
+  *noPunct = '\0';
 }
 
 /*
@@ -67,14 +57,14 @@ char **readWords() {
   int i = 0;
 
   while (fscanf(file, "%99s", word) == 1) {
-    lower3(word);
-    removePunctuation(word);
+    removePunctuation(word);  // remove punctuation from word first
+    lower3(word);             // convert word to lowercase second
     words[i] = (char *)malloc(MAX_WORD_LENGTH * sizeof(char));
-    strcpy(words[i], word);
+    Strcpy(words[i], word);
     i++;
   }
 
-  words[i] = NULL;  // NULL-terminate the array
+  words[i] = NULL;  // set last element to NULL for checking end of array
   fclose(file);
 
   return words;
@@ -91,13 +81,14 @@ typedef struct Node {
 } Node;
 
 /*
-Hash function for bigram nodes in hash table (djb2)
+Hash function for bigram nodes in hash table (djb2) using XOR and shift operator
 */
 unsigned long hashFunction(char *word1, char *word2) {
   unsigned long hash = 5381;
 
-  while (*word1) hash = ((hash << 5) + hash) + *word1++; /* hash * 33 + c */
-  while (*word2) hash = ((hash << 5) + hash) + *word2++; /* hash * 33 + c */
+  // hash = hash * 33 ^ ASCII(word)
+  while (*word1) hash = ((hash << 5) + hash) + *word1++;
+  while (*word2) hash = ((hash << 5) + hash) + *word2++;
 
   return hash;
 }
@@ -109,8 +100,8 @@ void insert2HashTable(Node **hashTable, char *word1, char *word2) {
   unsigned long bucketIndex = hashFunction(word1, word2) % BUCKET_NUM;
   if (hashTable[bucketIndex] == NULL) {
     Node *newNode = (Node *)malloc(sizeof(Node));
-    strcpy(newNode->bigram[0], word1);
-    strcpy(newNode->bigram[1], word2);
+    Strcpy(newNode->bigram[0], word1);
+    Strcpy(newNode->bigram[1], word2);
     newNode->freq = 1;
     newNode->next = NULL;
     hashTable[bucketIndex] = newNode;
@@ -130,8 +121,8 @@ void insert2HashTable(Node **hashTable, char *word1, char *word2) {
       return;
     }
     Node *newNode = (Node *)malloc(sizeof(Node));
-    strcpy(newNode->bigram[0], word1);
-    strcpy(newNode->bigram[1], word2);
+    Strcpy(newNode->bigram[0], word1);
+    Strcpy(newNode->bigram[1], word2);
     newNode->freq = 1;
     newNode->next = NULL;
     current->next = newNode;
@@ -142,7 +133,6 @@ void insert2HashTable(Node **hashTable, char *word1, char *word2) {
 complete hash table
 */
 void completeHashTable(Node **hashTable, char **words) {
-  char bigram[2 * MAX_WORD_LENGTH];
   for (int i = 0; i < MAX_WORD_COUNT && words[i + 1] != NULL; i++) {
     // bigram = "word[i] word[i+1]"
     insert2HashTable(hashTable, words[i], words[i + 1]);
@@ -174,6 +164,9 @@ int compareNodes(const void *a, const void *b) {
   return nodeB->freq - nodeA->freq;
 }
 
+/*
+main function
+*/
 int main() {
   // read words from file and store in to words array
   char **words = readWords();
@@ -199,6 +192,5 @@ int main() {
     printf("# %d - %s %s : %d\n", i, nodeArray[i]->bigram[0],
            nodeArray[i]->bigram[1], nodeArray[i]->freq);
   }
-
   return 0;
 }

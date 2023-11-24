@@ -8,12 +8,37 @@
 #define MAX_WORD_LENGTH 100
 #define BUCKET_NUM 199999
 
+
+/*
+library functino wrapping
+*/
+int Strlen(char *s) {
+  return strlen(s);
+}
+
+int Strcmp(char *s1, char *s2) {
+  return strcmp(s1, s2);
+}
+
+void Strcpy(char *s1, char *s2) {
+  strcpy(s1, s2);
+}
+
+int Ispunct(int _c) {
+  return ispunct(_c);
+}
+
+void Qsort(void *base, size_t nmemb, size_t size,
+           int (*compar)(const void *, const void *)) { 
+  qsort(base, nmemb, size, compar);
+}
+
 /*
 Convert string to lowercase: slow
 from textbook p.546
 */
-void lower1(char *s) {
-  for (long i = 0; i < strlen(s); i++) {
+void lower3(char *s) {
+  for (long i = 0; i < Strlen(s); i++) {
     if (s[i] >= 'A' && s[i] <= 'Z') {
       s[i] -= ('A' - 'a');
     }
@@ -25,17 +50,17 @@ Remove punctuation from string
 */
 void removePunctuation(char *str) {
   int i, j = 0;
-  char noPunct[strlen(str) + 1];  // +1 for the null terminator
+  char noPunct[Strlen(str) + 1];  // +1 for the null terminator
 
-  for (i = 0; i < strlen(str); i++) {
-    if (!ispunct(str[i])) {
+  for (i = 0; i < Strlen(str); i++) {
+    if (!Ispunct(str[i])) {
       noPunct[j++] = str[i];
     }
   }
   noPunct[j] = '\0';  // Adding the null terminator to the end of the string
 
   // Copying the modified string back to the original string
-  strcpy(str, noPunct);
+  Strcpy(str, noPunct);
 }
 
 /*
@@ -49,7 +74,7 @@ char **readWords() {
   int i = 0;
 
   while (fscanf(file, "%99s", word) == 1) {
-    lower1(word);
+    lower3(word);
     removePunctuation(word);
     words[i] = (char *)malloc(MAX_WORD_LENGTH * sizeof(char));
     strcpy(words[i], word);
@@ -77,10 +102,10 @@ Hash function that sums the ASCII codes for the characters modulo s
 */
 int hashFunction(char *word1, char *word2) {
   int sum = 0;
-  for (int i = 0; i < strlen(word1); i++) {
+  for (int i = 0; i < Strlen(word1); i++) {
     sum += word1[i];
   }
-  for (int i = 0; i < strlen(word2); i++) {
+  for (int i = 0; i < Strlen(word2); i++) {
     sum += word2[i];
   }
   return sum % BUCKET_NUM;
@@ -101,15 +126,15 @@ void insert2HashTable(Node **hashTable, int bucketIndex, char *word1,
   } else {
     Node *current = hashTable[bucketIndex];
     while (current->next != NULL) {
-      if (strcmp(current->bigram[0], word1) == 0 &&
-          strcmp(current->bigram[1], word2) == 0) {
+      if (Strcmp(current->bigram[0], word1) == 0 &&
+          Strcmp(current->bigram[1], word2) == 0) {
         current->freq++;
         return;
       }
       current = current->next;
     }
-    if (strcmp(current->bigram[0], word1) == 0 &&
-        strcmp(current->bigram[1], word2) == 0) {
+    if (Strcmp(current->bigram[0], word1) == 0 &&
+        Strcmp(current->bigram[1], word2) == 0) {
       current->freq++;
       return;
     }
@@ -174,7 +199,7 @@ int main() {
   node2Array(hashTable, nodeArray, &nodeCount);
 
   // sort bigram nodes
-  qsort(nodeArray, nodeCount, sizeof(Node *), compareNodes);
+  Qsort(nodeArray, nodeCount, sizeof(Node *), compareNodes);
 
   // print out top 10 bigrams
   printf("< Top 10 bigrams >\n\n");

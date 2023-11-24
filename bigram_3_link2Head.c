@@ -12,7 +12,7 @@
 Convert string to lowercase: slow
 from textbook p.546
 */
-void lower1(char *s) {
+void lower3(char *s) {
   for (long i = 0; i < strlen(s); i++) {
     if (s[i] >= 'A' && s[i] <= 'Z') {
       s[i] -= ('A' - 'a');
@@ -49,7 +49,7 @@ char **readWords() {
   int i = 0;
 
   while (fscanf(file, "%99s", word) == 1) {
-    lower1(word);
+    lower3(word);
     removePunctuation(word);
     words[i] = (char *)malloc(MAX_WORD_LENGTH * sizeof(char));
     strcpy(words[i], word);
