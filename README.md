@@ -1,4 +1,4 @@
-# system_pgrm_A3
+# Sytem Program PA3
 - create a bigram analyzer & optimize it
 
 Deadline -  12/1 17:00
